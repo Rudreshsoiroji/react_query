@@ -1,6 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { debounce } from 'lodash';
+import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 function Products() {
+
+const [searchParams ,setSearchParams] = useSearchParams({
+
+    limit: 4,
+    skip: 0
+})
+
+const limit = parseInt(searchParams.get("limit") || 0);
+const skip = parseInt(searchParams.get("skip") || 0);  
+const q = searchParams.get("q") || ""; 
+const catagory = searchParams.get("catagory")||""
+
+
+
     const { data: categories } = useQuery({
         queryKey: ['categories'],
         queryFn: async () => {
@@ -11,12 +28,33 @@ function Products() {
     });
 
     const { data: products } = useQuery({
-        queryKey: ['products'],
+        queryKey: ['products',limit, skip, q],
         queryFn: async () => {
-            const data = await fetch('https://dummyjson.com/products').then((res) => res.json());
+            const data = await fetch(`https://dummyjson.com/products/search?limit=${limit}&skip=${skip}&q=${q}`).then((res) => res.json());
             return data.products;
-        },
+            },
+        placeholderData: keepPreviousData,
     });
+
+const handleMove = (moveCount) =>{
+      // Next
+        // skip = 4, moveCount = 4
+        // 4 + 4 = 8
+
+        // Prev
+        // skip = 0, moveCount = -4
+        // 0 + -4 = -4
+
+//     setSkip((prev) => {
+//         return Math.max(prev + moveCount, 0);
+//     })
+
+   setSearchParams((prev)=>{
+     prev.set("skip", Math.max(skip + moveCount, 0) )
+     return prev;
+   })
+}
+
 
 
  return (
@@ -31,7 +69,16 @@ function Products() {
                     <div>
                         <div className="relative mt-2 rounded-md flex items-center gap-8 mb-4">
                             <input
-                                onChange={() => {}}
+                                onChange={debounce(
+                                    (e) => {
+
+                                        setSearchParams((prev) => {
+                                            prev.set("q", e.target.value);
+                                            prev.set("skip", 0);
+                                            return prev;
+                                        })
+                                    }
+                                    ,1000)}
                                 type="text"
                                 name="price"
                                 id="price"
@@ -87,12 +134,12 @@ function Products() {
                     <div className="flex gap-2 mt-12">
                         <button
                             className="bg-purple-500 px-4 py-1 text-white rounded"
-                            onClick={() => {}}>
+                            onClick={() => {handleMove(-limit)}}>
                             Prev
                         </button>
                         <button
                             className="bg-purple-500 px-4 py-1 text-white rounded"
-                            onClick={() => {}}>
+                            onClick={() => {handleMove(limit)}}>
                             Next
                         </button>
                     </div>
