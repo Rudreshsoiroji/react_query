@@ -39,7 +39,7 @@ const category = searchParams.get("category")|| "";
             return data.products;
             },
         placeholderData: keepPreviousData,
-        //  staleTime: 5000,
+          staleTime: 5000,
     });
 
 const handleMove = (moveCount) =>{
@@ -103,7 +103,8 @@ const handleMove = (moveCount) =>{
                                 <option>Select category</option>
 
                                 {categories?.map((category) => (
-                                    <option key={category.name} value={category.name}>
+                                    <option key={category.slug} value={category.slug}>
+                                       
                                         {category.name}
                                     </option>
                                 ))}
@@ -111,6 +112,7 @@ const handleMove = (moveCount) =>{
                             </select>
                         </div>
                     </div>
+    
 
                     <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
                         {products?.map((product) => (
